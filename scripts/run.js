@@ -1,34 +1,44 @@
 const main = async () => {
-    const [owner, friend] = await hre.ethers.getSigners();
     const waveContractFactory = await hre.ethers.getContractFactory("WavePortal");
-    const waveContract = await waveContractFactory.deploy();
+    const waveContract = await waveContractFactory.deploy({
+        value: hre.ethers.utils.parseEther("0.1"),
+    });
     await waveContract.deployed();
-    
-    console.log("Contract deployed to:", waveContract.address);
-    console.log("Contract deployed by:", owner.address);
-
-    let waveCount;
-
-    waveCount = await waveContract.getTotalWaves();
-
-    let waveTxn = await waveContract.wave();
+    console.log("Contract addy:", waveContract.address);
+  
+    /*
+     * Get Contract balance
+     */
+    let contractBalance = await hre.ethers.provider.getBalance(
+        waveContract.address
+    );
+    console.log(
+        "Contract balance:",
+        hre.ethers.utils.formatEther(contractBalance)
+    );
+  
+    /*
+     * Send two waves
+     */
+    let waveTxn = await waveContract.wave("A message!");
     await waveTxn.wait();
 
-    waveCount = await waveContract.getTotalWaves();
-
-    waveTxn = await waveContract.connect(friend).wave();
-    await waveTxn.wait();
-
-    waveCount = await waveContract.getTotalWaves();
-
-    waveTxn = await waveContract.connect(friend).wave();
-    await waveTxn.wait();
-
-    waveCount = await waveContract.getTotalWaves();
-
-    wavers = await waveContract.getWavers();
-}
-
+    let waveTxn2 = await waveContract.wave("Another message!");
+    await waveTxn2.wait();
+  
+    /*
+     * Get Contract balance to see what happened!
+     */
+    contractBalance = await hre.ethers.provider.getBalance(waveContract.address);
+    console.log(
+        "Contract balance:",
+        hre.ethers.utils.formatEther(contractBalance)
+    );
+  
+    let allWaves = await waveContract.getAllWaves();
+    console.log(allWaves);
+};
+  
 const runMain = async () => {
     try {
         await main();
@@ -37,6 +47,6 @@ const runMain = async () => {
         console.log(error);
         process.exit(1);
     }
-}
-
+};
+  
 runMain();
